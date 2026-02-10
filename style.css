@@ -1,20 +1,74 @@
-// 時計
-function updateTime() {
-  const now = new Date();
-  const t = now.toLocaleTimeString();
-  document.getElementById("time").textContent = t;
+:root {
+    --wave-color-r: 255;
+    --wave-color-g: 255;
+    --wave-color-b: 255;
+    --text-wave-color: rgba(255,255,255,0.5);
 }
-setInterval(updateTime, 1000);
-updateTime();
 
-// 天気（自分用の座標）
-fetch("https://api.open-meteo.com/v1/forecast?latitude=39.72&longitude=140.10&current_weather=true")
-  .then(res => res.json())
-  .then(data => {
-    const w = data.current_weather;
-    document.getElementById("weather").textContent =
-      `気温 ${w.temperature}°C / 風速 ${w.windspeed} km/h`;
-  })
-  .catch(() => {
-    document.getElementById("weather").textContent = "天気取得に失敗";
-  });
+body, html {
+    margin: 0;
+    height: 100%;
+    overflow: hidden;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #1e3c72;
+}
+
+#clock-container {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: white;
+
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25))
+            drop-shadow(0 0 20px rgba(255,255,255,0.2));
+}
+
+.clip-text {
+    color: transparent;
+    background-clip: text;
+    -webkit-background-clip: text;
+    background-image:
+        linear-gradient(to bottom, rgba(255,255,255,1) 30%, var(--text-wave-color) 100%),
+        radial-gradient(circle at center bottom, var(--text-wave-color) 0%, transparent 60%),
+        radial-gradient(circle at center bottom, var(--text-wave-color) 0%, transparent 60%);
+    background-size: 100% 100%, 200% 50%, 200% 50%;
+    background-position: 0 0, 0 100%, 100% 100%;
+    background-repeat: no-repeat, repeat-x, repeat-x;
+    animation: textWave 6s infinite linear;
+}
+
+@keyframes textWave {
+    0% { background-position: 0 0, 0 100%, 100% 100%; }
+    100% { background-position: 0 0, -200% 100%, -100% 100%; }
+}
+
+#time { font-size: 6rem; margin: 0; }
+#date { font-size: 1.5rem; margin-bottom: 10px; }
+
+#weather {
+    margin-top: 20px;
+    font-size: 1.2rem;
+}
+
+.waves {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    height: 30vh;
+}
+
+.parallax > use {
+    animation: move-forever 25s cubic-bezier(.55,.5,.45,.5) infinite;
+}
+
+.parallax > use:nth-child(1) { fill: rgba(var(--wave-color-r),var(--wave-color-g),var(--wave-color-b),0.3); animation-duration: 7s; }
+.parallax > use:nth-child(2) { fill: rgba(var(--wave-color-r),var(--wave-color-g),var(--wave-color-b),0.5); animation-duration: 10s; }
+.parallax > use:nth-child(3) { fill: rgba(var(--wave-color-r),var(--wave-color-g),var(--wave-color-b),0.7); animation-duration: 13s; }
+.parallax > use:nth-child(4) { fill: rgba(var(--wave-color-r),var(--wave-color-g),var(--wave-color-b),1.0); animation-duration: 20s; }
+
+@keyframes move-forever {
+    0% { transform: translate3d(-90px,0,0); }
+    100% { transform: translate3d(85px,0,0); }
+}
