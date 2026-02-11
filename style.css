@@ -31,25 +31,29 @@ body, html {
 #date { font-size: 2rem; margin-bottom: 10px; }
 
 #weather {
-    z-index: 10;
     margin-top: 20px;
     font-size: 1.2rem;
+
+    display: flex;
+    gap: 12px;
+    justify-content: center;
 }
 
 #locationSelect {
-    position: absolute;
-    bottom: 20px;
-    right: 20px;
-    padding: 8px 12px;
+    margin-top: 16px;
+    padding: 8px 14px;
     font-size: 1rem;
-    background: rgba(255,255,255,0.2);
+
+    background: rgba(255,255,255,0.15);
     color: white;
     border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 4px;
-    cursor: pointer;
+    border-radius: 8px;
+
+    backdrop-filter: blur(6px);
 }
 
 #locationSelect option {
     background: #1e3c72;
     color: white;
 }
+
