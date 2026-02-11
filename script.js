@@ -22,21 +22,34 @@ document.getElementById("locationSelect").addEventListener("change", async e => 
   // 現在地
   // -------------------------
   if (v === "here") {
-    usingGeolocation = true;
-    document.getElementById("weather-text").textContent = "位置情報取得中...";
+  document.getElementById("weather-text").textContent = "現在地取得中...";
 
-    try {
-      const pos = await new Promise((resolve, reject) => {
-  navigator.geolocation.getCurrentPosition(
-    resolve,
-    reject,
-    {
-      enableHighAccuracy: false,
-      timeout: 150000,     // ← ここで公式タイムアウト指定
-      maximumAge: 600000
-    }
-  );
-});
+  try {
+    const res = await fetch("https://ipapi.co/json/");
+    const data = await res.json();
+
+    const lat = data.latitude;
+    const lon = data.longitude;
+
+    console.log("IP現在地:", lat, lon, data.city);
+
+    currentLocation = { lat, lon };
+
+    await loadWeather(lat, lon);
+    updateBackground();
+
+  } catch (e) {
+    console.error("IP位置取得失敗:", e);
+
+    document.getElementById("weather-text").textContent =
+      "現在地取得失敗（東京で表示）";
+
+    currentLocation = { lat: 35.68, lon: 139.76 };
+
+    await loadWeather(35.68, 139.76);
+    updateBackground();
+  }
+}
 
       currentLocation = {
         lat: pos.coords.latitude,
@@ -238,6 +251,7 @@ setInterval(loadWeather, 300000);
 
 // ★ 背景10分更新
 setInterval(updateBackground, 600000);
+
 
 
 
