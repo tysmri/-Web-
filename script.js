@@ -32,8 +32,8 @@ document.getElementById("locationSelect").addEventListener("change", async e => 
     reject,
     {
       enableHighAccuracy: false,
-      timeout: 15000,     // ← ここで公式タイムアウト指定
-      maximumAge: 60000
+      timeout: 150000,     // ← ここで公式タイムアウト指定
+      maximumAge: 600000
     }
   );
 });
@@ -238,5 +238,6 @@ setInterval(loadWeather, 300000);
 
 // ★ 背景10分更新
 setInterval(updateBackground, 600000);
+
 
 
