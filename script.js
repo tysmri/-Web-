@@ -138,6 +138,8 @@ async function loadWeather() {
     backgroundColor(code);
 }
 
+let currentWeatherCode = 0;
+
 updateClock();
 setInterval(updateClock, 1000);
 loadWeather();
