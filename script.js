@@ -25,12 +25,29 @@ document.getElementById("locationSelect").addEventListener("change", async e => 
     try {
       console.log("位置情報取得を開始します...");
       const pos = await new Promise((resolve, reject) => {
-        navigator.geolocation.getCurrentPosition(resolve, reject, {
-          timeout: 30000, // 30秒に延長
-          maximumAge: 60000, // キャッシュされた位置情報を1分間有効に
-          enableHighAccuracy: false // 高精度は不要（速度優先）
-        });
-      });
+
+      // 10秒で強制フォールバック
+      const timer = setTimeout(() => {
+        reject({ code: 3, message: "manual timeout" });
+      }, 10000);
+    
+      navigator.geolocation.getCurrentPosition(
+        position => {
+          clearTimeout(timer);
+          resolve(position);
+        },
+        error => {
+          clearTimeout(timer);
+          reject(error);
+        },
+        {
+          enableHighAccuracy: false,
+          maximumAge: 60000
+      // ★ timeout は指定しない
+    }
+  );
+});
+
       
       currentLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
       console.log("✅ 現在地取得成功!");
@@ -221,3 +238,4 @@ updateBackground(); // 初回背景設定
 
 setInterval(loadWeather, 300000); // 天気は5分ごとに更新
 setInterval(updateBackground, 600000);
+
