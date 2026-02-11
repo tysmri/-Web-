@@ -62,6 +62,7 @@ function applyWeatherFilter(top, bottom, code) {
     2:0.1, 45:0.25, 48:0.25,
     51:0.15, 53:0.2, 55:0.25,
     71:0.25, 73:0.35, 75:0.5
+    }
   };
 
   const grayMap = {
@@ -219,3 +220,4 @@ loadWeather().then(() => backgroundColor(currentWeatherCode));
 
 setInterval(loadWeather, 300000);      // 5分ごと天気更新
 setInterval(() => backgroundColor(currentWeatherCode), 600000); // 10分ごと背景更新
+
