@@ -27,26 +27,16 @@ document.getElementById("locationSelect").addEventListener("change", async e => 
 
     try {
       const pos = await new Promise((resolve, reject) => {
-  const timer = setTimeout(() => {
-    reject({ code: 3, message: "manual timeout" });
-  }, 10000);
-
   navigator.geolocation.getCurrentPosition(
-    position => {
-      clearTimeout(timer);
-      resolve(position);
-    },
-    error => {
-      clearTimeout(timer);
-      reject(error);
-    },
+    resolve,
+    reject,
     {
       enableHighAccuracy: false,
+      timeout: 15000,     // ← ここで公式タイムアウト指定
       maximumAge: 60000
     }
   );
 });
-
 
       currentLocation = {
         lat: pos.coords.latitude,
@@ -248,4 +238,5 @@ setInterval(loadWeather, 300000);
 
 // ★ 背景10分更新
 setInterval(updateBackground, 600000);
+
 
