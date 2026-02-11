@@ -1,4 +1,4 @@
-let currentWeatherCode = 0;
+// let currentWeatherCode = 0;
 
 // 中間色
 const interpolateColor = (start, end, factor) =>
@@ -144,3 +144,4 @@ updateClock();
 setInterval(updateClock, 1000);
 loadWeather();
 setInterval(loadWeather, 300000);
+
