@@ -1,7 +1,4 @@
 :root {
-    --wave-color-r: 255;
-    --wave-color-g: 255;
-    --wave-color-b: 255;
     --text-wave-color: rgba(255,255,255,0.5);
 }
 
@@ -20,27 +17,14 @@ body, html {
     transform: translate(-50%, -50%);
     text-align: center;
     color: white;
-    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5))
-            drop-shadow(0 0 20px rgba(255,255,255,0.25));
+    filter: drop-shadow(0 4px 10px rgba(0,0,0,0.5));
 }
 
 .clip-text {
     color: transparent;
     background-clip: text;
     -webkit-background-clip: text;
-    background-image:
-        linear-gradient(to bottom, rgba(255,255,255,1) 30%, var(--text-wave-color) 100%),
-        radial-gradient(circle at center bottom, var(--text-wave-color) 0%, transparent 60%),
-        radial-gradient(circle at center bottom, var(--text-wave-color) 0%, transparent 60%);
-    background-size: 100% 100%, 200% 50%, 200% 50%;
-    background-position: 0 0, 0 100%, 100% 100%;
-    background-repeat: no-repeat, repeat-x, repeat-x;
-    animation: textWave 6s infinite linear;
-}
-
-@keyframes textWave {
-    0% { background-position: 0 0, 0 100%, 100% 100%; }
-    100% { background-position: 0 0, -200% 100%, -100% 100%; }
+    background-image: linear-gradient(to bottom, rgba(255,255,255,1) 30%, var(--text-wave-color) 100%);
 }
 
 #time { font-size: 8rem; margin: 0; }
@@ -52,7 +36,20 @@ body, html {
     font-size: 1.2rem;
 }
 
-@keyframes move-forever {
-    0% { transform: translate3d(-90px,0,0); }
-    100% { transform: translate3d(85px,0,0); }
+#locationSelect {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    padding: 8px 12px;
+    font-size: 1rem;
+    background: rgba(255,255,255,0.2);
+    color: white;
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+#locationSelect option {
+    background: #1e3c72;
+    color: white;
 }
