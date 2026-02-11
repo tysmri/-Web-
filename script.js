@@ -1,3 +1,5 @@
+let currentWeatherCode = 0;
+
 // 中間色
 const interpolateColor = (start, end, factor) =>
     start.map((s, i) => Math.round(s + factor * (end[i] - s)));
@@ -137,8 +139,6 @@ async function loadWeather() {
 
     backgroundColor(code);
 }
-
-let currentWeatherCode = 0;
 
 updateClock();
 setInterval(updateClock, 1000);
