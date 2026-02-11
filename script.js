@@ -1,3 +1,70 @@
+const locations = {
+  sapporo: [43.06, 141.35],
+  sendai:  [38.27, 140.87],
+  tokyo:   [35.68, 139.76],
+  nagoya:  [35.18, 136.91],
+  osaka:   [34.69, 135.50],
+  fukuoka: [33.59, 130.40],
+  okinawa: [26.21, 127.68]
+};
+
+let currentWeatherCode = 0;
+let currentLocation = { lat: 35.68, lon: 139.76 }; // 現在選択中の場所を保持
+
+// 時刻による背景更新（10分ごと）
+function updateBackground() {
+    backgroundColor(currentWeatherCode);
+}
+
+document.getElementById("locationSelect").addEventListener("change", async e => {
+  const v = e.target.value;
+
+  if (v === "here") {
+    document.getElementById("weather-text").textContent = "位置情報取得中...";
+    
+    try {
+      console.log("位置情報取得を開始します...");
+      const pos = await new Promise((resolve, reject) => {
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          timeout: 30000, // 30秒に延長
+          maximumAge: 60000, // キャッシュされた位置情報を1分間有効に
+          enableHighAccuracy: false // 高精度は不要（速度優先）
+        });
+      });
+      
+      currentLocation = { lat: pos.coords.latitude, lon: pos.coords.longitude };
+      console.log("✅ 現在地取得成功!");
+      console.log("  緯度:", pos.coords.latitude);
+      console.log("  経度:", pos.coords.longitude);
+      console.log("  精度:", pos.coords.accuracy, "メートル");
+      
+      await loadWeather(currentLocation.lat, currentLocation.lon);
+      updateBackground();
+      
+    } catch (error) {
+      console.error("❌ 位置情報取得エラー:", error);
+      if (error.code === 3) {
+        document.getElementById("weather-text").textContent = "タイムアウト（東京で表示）";
+        console.log("タイムアウトのため東京の天気を表示します");
+        // タイムアウト時は東京の天気を表示
+        currentLocation = { lat: 35.68, lon: 139.76 };
+        await loadWeather(35.68, 139.76);
+        updateBackground();
+      } else {
+        document.getElementById("weather-text").textContent = "位置情報取得失敗";
+      }
+    }
+    
+  } else {
+    const [lat, lon] = locations[v];
+    currentLocation = { lat, lon };
+    console.log("場所変更:", v, currentLocation);
+    
+    await loadWeather(lat, lon);
+    updateBackground();
+  }
+});
+
 // 中間色
 const interpolateColor = (start, end, factor) =>
     start.map((s, i) => Math.round(s + factor * (end[i] - s)));
@@ -11,7 +78,7 @@ function updateClock() {
 
     document.getElementById("time").textContent = `${hours}:${mins}:${secs}`;
     document.getElementById("date").textContent =
-        `${now.getFullYear()}.${String(now.getMonth()+1).padStart(2,"0")}.${String(now.getDate()).padStart(2,"0")}`;
+        `${now.getFullYear()} ${String(now.getMonth()+1).padStart(2,"0")}/${String(now.getDate()).padStart(2,"0")}`;
 }
 
 function applyWeatherFilter(top, bottom, code) {
@@ -58,9 +125,6 @@ function backgroundColor(weatherCode) {
     const now = new Date();
 
     const hours = now.getHours();
-    const mins = String(now.getMinutes()).padStart(2, "0");
-    const secs = String(now.getSeconds()).padStart(2, "0");
-
     const totalSeconds = (hours * 3600) + (now.getMinutes() * 60) + now.getSeconds();
     const dayProgress = totalSeconds / 86400;
 
@@ -93,54 +157,67 @@ function backgroundColor(weatherCode) {
         `linear-gradient(180deg, rgb(${currentTop.join(",")}) 0%, rgb(${currentBottom.join(",")}) 100%)`;
 }
 
-// 天気取得（東京固定）
-async function loadWeather() {
-    const url = "https://api.open-meteo.com/v1/forecast?latitude=35.68&longitude=139.76&current_weather=true";
+// 天気取得（現在選択中の場所を使用）
+async function loadWeather(lat = currentLocation.lat, lon = currentLocation.lon) {
+    const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+    
+    console.log("天気取得開始:", lat, lon);
 
-    const res = await fetch(url);
-    const data = await res.json();
+    try {
+        const res = await fetch(url);
+        const data = await res.json();
 
-    const temp = data.current_weather.temperature;
-    const code = data.current_weather.weathercode;
+        const temp = data.current_weather.temperature;
+        const code = data.current_weather.weathercode;
 
-    const weatherMap = {
-    0:"快晴",
-    1:"晴れ",
-    2:"薄曇り",
-    3:"曇り",
+        const weatherMap = {
+            0:"快晴",
+            1:"晴れ",
+            2:"薄曇り",
+            3:"曇り",
 
-    45:"霧",
-    48:"着氷霧",
+            45:"霧",
+            48:"着氷霧",
 
-    51:"弱い霧雨",
-    53:"霧雨",
-    55:"強い霧雨",
+            51:"弱い霧雨",
+            53:"霧雨",
+            55:"強い霧雨",
 
-    61:"弱い雨",
-    63:"雨",
-    65:"強い雨",
+            61:"弱い雨",
+            63:"雨",
+            65:"強い雨",
 
-    71:"弱い雪",
-    73:"雪",
-    75:"強い雪",
+            71:"弱い雪",
+            73:"雪",
+            75:"強い雪",
 
-    80:"にわか雨",
-    81:"強いにわか雨",
-    82:"激しいにわか雨",
+            80:"にわか雨",
+            81:"強いにわか雨",
+            82:"激しいにわか雨",
 
-    95:"雷雨"
-    };
+            95:"雷雨"
+        };
 
-    document.getElementById("temperature").textContent = `${temp}°C`;
-    document.getElementById("weather-text").textContent = weatherMap[code] ?? `code:${code}`;
-    console.log("weather code:", code);
+        document.getElementById("temperature").textContent = `${temp}°C`;
+        document.getElementById("weather-text").textContent = weatherMap[code] ?? `code:${code}`;
 
-    backgroundColor(code);
+        // 天気コードを更新
+        currentWeatherCode = code;
+        
+        console.log("天気取得完了:", temp, weatherMap[code], code);
+        
+    } catch (error) {
+        console.error("天気取得エラー:", error);
+        document.getElementById("weather-text").textContent = "取得失敗";
+    }
 }
 
+// 初期化
 updateClock();
-setInterval(updateClock, 1000);
-loadWeather();
-setInterval(loadWeather, 300000);
+setInterval(updateClock, 1000); // 時計は毎秒更新
 
+loadWeather(); // 初回天気取得
+updateBackground(); // 初回背景設定
 
+setInterval(loadWeather, 300000); // 天気は5分ごとに更新
+setInterval(updateBackground, 600000); // 背景は10分ごとに更新（時刻による色変化用）
