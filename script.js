@@ -220,4 +220,4 @@ loadWeather(); // 初回天気取得
 updateBackground(); // 初回背景設定
 
 setInterval(loadWeather, 300000); // 天気は5分ごとに更新
-setInterval(updateBackground, 600000); // 背景は10分ごとに更新（時刻による色変化用）
+setInterval(updateBackground, 600000);
