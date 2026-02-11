@@ -1,3 +1,6 @@
+// ===============================
+// 都市プリセット
+// ===============================
 const locations = {
   sapporo: [43.06, 141.35],
   sendai:  [38.27, 140.87],
@@ -9,85 +12,27 @@ const locations = {
 };
 
 let currentWeatherCode = 0;
-let currentLocation = { lat: 35.68, lon: 139.76 }; // 初期は東京固定
-let usingGeolocation = false; // ←重要：現在地使用中か
+let currentLocation = { lat: 35.68, lon: 139.76 };
 
-// =============================
-// 位置選択
-// =============================
-document.getElementById("locationSelect").addEventListener("change", async e => {
-  const v = e.target.value;
 
-  // -------------------------
-  // 現在地
-  // -------------------------
-  if (v === "here") {
-  document.getElementById("weather-text").textContent = "現在地取得中...";
+// ===============================
+// IPベース現在地取得（GPS不使用）
+// ===============================
+async function getLocationByIP() {
+  const res = await fetch("https://ipapi.co/json/");
+  const data = await res.json();
 
-  try {
-    const res = await fetch("https://ipapi.co/json/");
-    const data = await res.json();
-
-    const lat = data.latitude;
-    const lon = data.longitude;
-
-    console.log("IP現在地:", lat, lon, data.city);
-
-    currentLocation = { lat, lon };
-
-    await loadWeather(lat, lon);
-    updateBackground();
-
-  } catch (e) {
-    console.error("IP位置取得失敗:", e);
-
-    document.getElementById("weather-text").textContent =
-      "現在地取得失敗（東京で表示）";
-
-    currentLocation = { lat: 35.68, lon: 139.76 };
-
-    await loadWeather(35.68, 139.76);
-    updateBackground();
-  }
+  return {
+    lat: data.latitude,
+    lon: data.longitude,
+    city: data.city ?? "現在地"
+  };
 }
 
-      currentLocation = {
-        lat: pos.coords.latitude,
-        lon: pos.coords.longitude
-      };
 
-      await loadWeather();
-
-    } catch (error) {
-      console.error("❌ 位置情報取得エラー:", error);
-
-      usingGeolocation = false; // ←ここ重要
-
-      document.getElementById("weather-text").textContent = "東京で表示";
-
-      currentLocation = { lat: 35.68, lon: 139.76 };
-      await loadWeather();
-    }
-
-  // -------------------------
-  // 都市選択
-  // -------------------------
-  } else {
-    usingGeolocation = false;
-
-    const [lat, lon] = locations[v];
-    currentLocation = { lat, lon };
-
-    await loadWeather();
-  }
-
-  updateBackground();
-});
-
-
-// =============================
-// 時計
-// =============================
+// ===============================
+// 時計表示
+// ===============================
 function updateClock() {
   const now = new Date();
 
@@ -101,16 +46,16 @@ function updateClock() {
 }
 
 
-// =============================
+// ===============================
 // 色補間
-// =============================
+// ===============================
 const interpolateColor = (start, end, factor) =>
   start.map((s, i) => Math.round(s + factor * (end[i] - s)));
 
 
-// =============================
+// ===============================
 // 天気フィルター
-// =============================
+// ===============================
 function applyWeatherFilter(top, bottom, code) {
 
   const whiteMap = {
@@ -125,7 +70,9 @@ function applyWeatherFilter(top, bottom, code) {
     80:0.2, 81:0.35, 82:0.5
   };
 
-  const darkMap = { 95:0.5 };
+  const darkMap = {
+    95:0.5
+  };
 
   const mixColor = (color, target, amount) =>
     color.map(c => c*(1-amount) + target*amount);
@@ -150,15 +97,14 @@ function applyWeatherFilter(top, bottom, code) {
 }
 
 
-// =============================
-// 背景
-// =============================
+// ===============================
+// 背景色更新
+// ===============================
 function backgroundColor(weatherCode) {
   const now = new Date();
 
-  const totalSeconds =
-    now.getHours()*3600 + now.getMinutes()*60 + now.getSeconds();
-
+  const hours = now.getHours();
+  const totalSeconds = (hours * 3600) + (now.getMinutes() * 60) + now.getSeconds();
   const dayProgress = totalSeconds / 86400;
 
   const sunHeight = -Math.cos(dayProgress * Math.PI * 2);
@@ -180,8 +126,7 @@ function backgroundColor(weatherCode) {
   currentTop[1] -= redBoostAmount * 0.25;
   currentBottom[1] -= redBoostAmount * 0.25;
 
-  [currentTop, currentBottom] =
-    applyWeatherFilter(currentTop, currentBottom, weatherCode);
+  [currentTop, currentBottom] = applyWeatherFilter(currentTop, currentBottom, weatherCode);
 
   const clamp = n => Math.min(Math.max(n, 0), 255);
   currentTop = currentTop.map(clamp);
@@ -191,19 +136,12 @@ function backgroundColor(weatherCode) {
     `linear-gradient(180deg, rgb(${currentTop.join(",")}) 0%, rgb(${currentBottom.join(",")}) 100%)`;
 }
 
-function updateBackground() {
-  backgroundColor(currentWeatherCode);
-}
 
-
-// =============================
+// ===============================
 // 天気取得
-// =============================
-async function loadWeather() {
-
-  const { lat, lon } = currentLocation;
-  const url =
-    `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
+// ===============================
+async function loadWeather(lat = currentLocation.lat, lon = currentLocation.lon) {
+  const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
 
   try {
     const res = await fetch(url);
@@ -213,12 +151,12 @@ async function loadWeather() {
     const code = data.current_weather.weathercode;
 
     const weatherMap = {
-      0:"快晴",1:"晴れ",2:"薄曇り",3:"曇り",
-      45:"霧",48:"着氷霧",
-      51:"弱い霧雨",53:"霧雨",55:"強い霧雨",
-      61:"弱い雨",63:"雨",65:"強い雨",
-      71:"弱い雪",73:"雪",75:"強い雪",
-      80:"にわか雨",81:"強いにわか雨",82:"激しいにわか雨",
+      0:"快晴", 1:"晴れ", 2:"薄曇り", 3:"曇り",
+      45:"霧", 48:"着氷霧",
+      51:"弱い霧雨", 53:"霧雨", 55:"強い霧雨",
+      61:"弱い雨", 63:"雨", 65:"強い雨",
+      71:"弱い雪", 73:"雪", 75:"強い雪",
+      80:"にわか雨", 81:"強いにわか雨", 82:"激しいにわか雨",
       95:"雷雨"
     };
 
@@ -228,30 +166,56 @@ async function loadWeather() {
 
     currentWeatherCode = code;
 
-    updateBackground();
-
-  } catch (e) {
-    console.error("天気取得エラー:", e);
+  } catch (error) {
+    console.error("天気取得エラー:", error);
     document.getElementById("weather-text").textContent = "取得失敗";
   }
 }
 
 
-// =============================
+// ===============================
+// 都市選択
+// ===============================
+document.getElementById("locationSelect").addEventListener("change", async e => {
+  const v = e.target.value;
+
+  if (v === "here") {
+    document.getElementById("weather-text").textContent = "現在地取得中...";
+
+    try {
+      const loc = await getLocationByIP();
+
+      currentLocation = { lat: loc.lat, lon: loc.lon };
+
+      await loadWeather(loc.lat, loc.lon);
+      backgroundColor(currentWeatherCode);
+
+    } catch (err) {
+      console.error("IP位置取得失敗:", err);
+      document.getElementById("weather-text").textContent = "現在地取得失敗（東京）";
+
+      currentLocation = { lat: 35.68, lon: 139.76 };
+      await loadWeather();
+      backgroundColor(currentWeatherCode);
+    }
+
+  } else {
+    const [lat, lon] = locations[v];
+    currentLocation = { lat, lon };
+
+    await loadWeather(lat, lon);
+    backgroundColor(currentWeatherCode);
+  }
+});
+
+
+// ===============================
 // 初期化
-// =============================
+// ===============================
 updateClock();
 setInterval(updateClock, 1000);
 
-// ★ 初期は東京のみ（現在地は触らない）
-loadWeather();
+loadWeather().then(() => backgroundColor(currentWeatherCode));
 
-// ★ 天気5分更新（現在地再取得はしない）
-setInterval(loadWeather, 300000);
-
-// ★ 背景10分更新
-setInterval(updateBackground, 600000);
-
-
-
-
+setInterval(loadWeather, 300000);      // 5分ごと天気更新
+setInterval(() => backgroundColor(currentWeatherCode), 600000); // 10分ごと背景更新
