@@ -152,14 +152,21 @@ document.getElementById("locationSelect").addEventListener("change", async e => 
   }
 });
 
+function startIntervals() {
+  // 既存を全停止
+  intervalIds.forEach(id => clearInterval(id));
+  intervalIds = [];
+
+  intervalIds.push(setInterval(updateClock, 1000));
+  intervalIds.push(setInterval(loadWeather, 300000));
+  intervalIds.push(setInterval(() => backgroundColor(currentWeatherCode), 60000));
+}
+
 // 初期化
 updateClock();
-intervalIds.push(setInterval(updateClock, 1000));
 
 loadWeather().then(() => {
   backgroundColor(currentWeatherCode);
 });
 
-intervalIds.push(setInterval(loadWeather, 300000));
-intervalIds.push(setInterval(() => backgroundColor(currentWeatherCode), 60000));
-
+startIntervals();
