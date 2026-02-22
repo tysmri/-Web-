@@ -92,9 +92,10 @@ function backgroundColor(code) {
   top = top.map(clamp);
   bottom = bottom.map(clamp);
 
-  document.body.style.background =
-    `linear-gradient(180deg, rgb(${top.join(",")}) 0%, rgb(${bottom.join(",")}) 100%)`;
-}
+  const newBg = `linear-gradient(180deg, rgb(${top.join(",")}) 0%, rgb(${bottom.join(",")}) 100%)`;
+  if (document.body.style.background !== newBg) {
+    document.body.style.background = newBg;
+  }
 
 async function loadWeather(lat = currentLocation.lat, lon = currentLocation.lon) {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
@@ -161,3 +162,4 @@ loadWeather().then(() => {
 
 setInterval(loadWeather, 300000); // 5分ごと
 setInterval(() => backgroundColor(currentWeatherCode), 60000); // 1分ごと（背景更新頻度を上げました）
+
