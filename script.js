@@ -10,6 +10,7 @@ const locations = {
 
 let currentWeatherCode = 0;
 let currentLocation = { lat: 35.68, lon: 139.76 };
+let intervalIds = [];
 
 async function getLocationByIP() {
   const res = await fetch("https://ipapi.co/json/");
@@ -92,10 +93,8 @@ function backgroundColor(code) {
   top = top.map(clamp);
   bottom = bottom.map(clamp);
 
-  const newBg = `linear-gradient(180deg, rgb(${top.join(",")}) 0%, rgb(${bottom.join(",")}) 100%)`;
-  if (document.body.style.background !== newBg) {
-    document.body.style.background = newBg;
-  }
+  document.body.style.background =
+    `linear-gradient(180deg, rgb(${top.join(",")}) 0%, rgb(${bottom.join(",")}) 100%)`;
 
 async function loadWeather(lat = currentLocation.lat, lon = currentLocation.lon) {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
@@ -154,12 +153,11 @@ document.getElementById("locationSelect").addEventListener("change", async e => 
 
 // 初期化
 updateClock();
-setInterval(updateClock, 1000);
+intervalIds.push(setInterval(updateClock, 1000));
 
 loadWeather().then(() => {
   backgroundColor(currentWeatherCode);
 });
 
-setInterval(loadWeather, 300000); // 5分ごと
-setInterval(() => backgroundColor(currentWeatherCode), 60000); // 1分ごと（背景更新頻度を上げました）
-
+intervalIds.push(setInterval(loadWeather, 300000));
+intervalIds.push(setInterval(() => backgroundColor(currentWeatherCode), 60000));
