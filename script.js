@@ -95,6 +95,7 @@ function backgroundColor(code) {
 
   document.body.style.background =
     `linear-gradient(180deg, rgb(${top.join(",")}) 0%, rgb(${bottom.join(",")}) 100%)`;
+}
 
 async function loadWeather(lat = currentLocation.lat, lon = currentLocation.lon) {
   const url = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current_weather=true`;
@@ -161,3 +162,4 @@ loadWeather().then(() => {
 
 intervalIds.push(setInterval(loadWeather, 300000));
 intervalIds.push(setInterval(() => backgroundColor(currentWeatherCode), 60000));
+
